@@ -64,7 +64,7 @@
             display: none;
         }
         
-        /* Hidden Admin Panel */
+        /* Admin Panel */
         .admin-panel { 
             position: fixed; 
             top: 50%;
@@ -77,7 +77,9 @@
             z-index: 1000;
             display: none;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         .admin-header {
             display: flex;
@@ -95,7 +97,29 @@
             cursor: pointer;
             color: #666;
         }
-        .admin-panel input, .admin-panel button {
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .admin-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .admin-tab.active {
+            border-bottom: 3px solid var(--gold);
+            color: var(--gold);
+        }
+        .admin-section {
+            display: none;
+        }
+        .admin-section.active {
+            display: block;
+        }
+        .admin-panel input, .admin-panel textarea, .admin-panel button {
             margin: 8px 0;
             padding: 10px;
             border: 1px solid #ddd;
@@ -108,6 +132,12 @@
             border: none;
             cursor: pointer;
             font-weight: 600;
+        }
+        .product-preview {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
         }
         .admin-toggle {
             position: fixed;
@@ -158,7 +188,8 @@
         .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
         .product-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: transform 0.3s; }
         .product-card:hover { transform: translateY(-10px); }
-        .product-img { height: 250px; background-color: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 3rem; }
+        .product-img { height: 250px; background-color: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 3rem; overflow: hidden; }
+        .product-img img { width: 100%; height: 100%; object-fit: cover; }
         .product-info { padding: 20px; }
         .product-info h3 { font-size: 1.3rem; margin-bottom: 10px; }
         .product-info p { color: #666; margin-bottom: 15px; font-size: 0.95rem; }
@@ -224,12 +255,45 @@
             <h3>Owner Settings</h3>
             <button class="close-admin" onclick="closeAdmin()">×</button>
         </div>
-        <input type="file" id="logoUpload" accept="image/*">
-        <button onclick="uploadLogo()">Update Logo</button>
-        <input type="text" id="phoneNumber" placeholder="Phone Number" value="+91 6238674572">
-        <button onclick="updatePhone()">Update Phone</button>
-        <button onclick="saveSettings()">Save All Changes</button>
-        <button onclick="logout()" style="background: #666; margin-top: 20px;">Logout</button>
+        
+        <div class="admin-tabs">
+            <button class="admin-tab active" onclick="switchTab('basic')">Basic</button>
+            <button class="admin-tab" onclick="switchTab('products')">Products</button>
+        </div>
+        
+        <!-- Basic Settings -->
+        <div class="admin-section active" id="basic-section">
+            <h4>Website Settings</h4>
+            <input type="file" id="logoUpload" accept="image/*">
+            <button onclick="uploadLogo()">Update Logo</button>
+            <input type="text" id="phoneNumber" placeholder="Phone Number" value="+91 6238674572">
+            <button onclick="updatePhone()">Update Phone</button>
+        </div>
+        
+        <!-- Product Management -->
+        <div class="admin-section" id="products-section">
+            <h4>Manage Products</h4>
+            <select id="productSelect" onchange="loadProduct()">
+                <option value="product1">Product 1</option>
+                <option value="product2">Product 2</option>
+                <option value="product3">Product 3</option>
+                <option value="product4">Product 4</option>
+            </select>
+            
+            <input type="text" id="productName" placeholder="Product Name">
+            <textarea id="productDescription" placeholder="Product Description"></textarea>
+            <input type="text" id="productPrice" placeholder="Price (₹)">
+            <input type="file" id="productImage" accept="image/*">
+            <button onclick="updateProduct()">Update Product</button>
+            
+            <div class="product-preview">
+                <h5>Preview:</h5>
+                <div id="productPreview"></div>
+            </div>
+        </div>
+        
+        <button onclick="saveSettings()" style="margin-top: 20px;">Save All Changes</button>
+        <button onclick="logout()" style="background: #666; margin-top: 10px;">Logout</button>
     </div>
 
     <!-- Header -->
@@ -297,48 +361,63 @@
                 <p>Discover our stunning anti-tarnish jewelry</p>
             </div>
             <div class="products-grid">
+                <!-- Product 1 -->
                 <div class="product-card">
-                    <div class="product-img"><i class="fas fa-ring"></i></div>
+                    <div class="product-img" id="product1-img">
+                        <i class="fas fa-ring"></i>
+                    </div>
                     <div class="product-info">
-                        <h3>Eternal Rose Gold Ring</h3>
-                        <p>Elegant rose gold ring with anti-tarnish coating.</p>
-                        <div class="price">₹4,299</div>
+                        <h3 id="product1-name">Eternal Rose Gold Ring</h3>
+                        <p id="product1-desc">Elegant rose gold ring with anti-tarnish coating.</p>
+                        <div class="price" id="product1-price">₹4,299</div>
                         <div class="product-meta">
                             <span><i class="fas fa-tag"></i> Rings</span>
                             <span><i class="fas fa-shield-alt"></i> Anti-Tarnish</span>
                         </div>
                     </div>
                 </div>
+
+                <!-- Product 2 -->
                 <div class="product-card">
-                    <div class="product-img"><i class="fas fa-necklace"></i></div>
+                    <div class="product-img" id="product2-img">
+                        <i class="fas fa-necklace"></i>
+                    </div>
                     <div class="product-info">
-                        <h3>Silver Elegance Necklace</h3>
-                        <p>Stunning silver necklace that resists tarnishing.</p>
-                        <div class="price">₹2,999</div>
+                        <h3 id="product2-name">Silver Elegance Necklace</h3>
+                        <p id="product2-desc">Stunning silver necklace that resists tarnishing.</p>
+                        <div class="price" id="product2-price">₹2,999</div>
                         <div class="product-meta">
                             <span><i class="fas fa-tag"></i> Necklaces</span>
                             <span><i class="fas fa-shield-alt"></i> Anti-Tarnish</span>
                         </div>
                     </div>
                 </div>
+
+                <!-- Product 3 -->
                 <div class="product-card">
-                    <div class="product-img"><i class="fas fa-gem"></i></div>
+                    <div class="product-img" id="product3-img">
+                        <i class="fas fa-gem"></i>
+                    </div>
                     <div class="product-info">
-                        <h3>Golden Horizon Bracelet</h3>
-                        <p>Beautiful gold-plated bracelet with anti-tarnish protection.</p>
-                        <div class="price">₹2,499</div>
+                        <h3 id="product3-name">Golden Horizon Bracelet</h3>
+                        <p id="product3-desc">Beautiful gold-plated bracelet with anti-tarnish protection.</p>
+                        <div class="price" id="product3-price">₹2,499</div>
                         <div class="product-meta">
                             <span><i class="fas fa-tag"></i> Bracelets</span>
                             <span><i class="fas fa-shield-alt"></i> Anti-Tarnish</span>
                         </div>
                     </div>
                 </div>
+
+                <!-- Product 4 -->
                 <div class="product-card">
-                    <div class="product-img"><i class="fas fa-earrings"></i></div>
+                    <div class="product-img" id="product4-img">
+                        <i class="fas fa-earrings"></i>
+                    </div>
                     <div class="product-info">
-                        <h3>Pearl Drop Earrings</h3>
-                        <p>Elegant pearl drop earrings with anti-tarnish hooks.</p>
-                        <div class="price">₹1,999</div>
+                        <h3 id="product4-name">Pearl Drop Earrings</h3>
+                        <p id="product4-desc">Elegant pearl drop earrings with anti-tarnish hooks.</p>
+                        <div class="price" id="product4-price">₹1,999</div>
                         <div class="product-meta">
                             <span><i class="fas fa-tag"></i> Earrings</span>
                             <span><i class="fas fa-shield-alt"></i> Anti-Tarnish</span>
@@ -457,6 +536,7 @@
                 document.getElementById('loginModal').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
                 errorMsg.style.display = 'none';
+                loadAllProducts();
             } else {
                 errorMsg.style.display = 'block';
             }
@@ -473,7 +553,90 @@
             document.getElementById('password').value = '';
         }
 
-        // Admin Functions
+        // Tab System
+        function switchTab(tabName) {
+            // Update tabs
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(section => section.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-section').classList.add('active');
+        }
+
+        // Product Management
+        function loadAllProducts() {
+            for (let i = 1; i <= 4; i++) {
+                const savedName = localStorage.getItem('product' + i + '_name');
+                const savedDesc = localStorage.getItem('product' + i + '_desc');
+                const savedPrice = localStorage.getItem('product' + i + '_price');
+                const savedImage = localStorage.getItem('product' + i + '_image');
+
+                if (savedName) document.getElementById('product' + i + '-name').textContent = savedName;
+                if (savedDesc) document.getElementById('product' + i + '-desc').textContent = savedDesc;
+                if (savedPrice) document.getElementById('product' + i + '-price').textContent = '₹' + savedPrice;
+                if (savedImage) {
+                    document.getElementById('product' + i + '-img').innerHTML = `<img src="${savedImage}">`;
+                }
+            }
+        }
+
+        function loadProduct() {
+            const productId = document.getElementById('productSelect').value;
+            const productNum = productId.replace('product', '');
+            
+            const name = localStorage.getItem(productId + '_name') || document.getElementById(productId + '-name').textContent;
+            const desc = localStorage.getItem(productId + '_desc') || document.getElementById(productId + '-desc').textContent;
+            const price = localStorage.getItem(productId + '_price') || document.getElementById(productId + '-price').textContent.replace('₹', '');
+            const image = localStorage.getItem(productId + '_image');
+
+            document.getElementById('productName').value = name;
+            document.getElementById('productDescription').value = desc;
+            document.getElementById('productPrice').value = price;
+            
+            // Update preview
+            let previewHtml = `<strong>${name}</strong><br>${desc}<br><strong>₹${price}</strong>`;
+            if (image) {
+                previewHtml = `<img src="${image}" style="width:100px;height:100px;object-fit:cover;border-radius:5px;margin-bottom:10px;"><br>` + previewHtml;
+            }
+            document.getElementById('productPreview').innerHTML = previewHtml;
+        }
+
+        function updateProduct() {
+            const productId = document.getElementById('productSelect').value;
+            const productNum = productId.replace('product', '');
+            
+            const name = document.getElementById('productName').value;
+            const desc = document.getElementById('productDescription').value;
+            const price = document.getElementById('productPrice').value;
+
+            // Update live website
+            document.getElementById(productId + '-name').textContent = name;
+            document.getElementById(productId + '-desc').textContent = desc;
+            document.getElementById(productId + '-price').textContent = '₹' + price;
+
+            // Save to storage
+            localStorage.setItem(productId + '_name', name);
+            localStorage.setItem(productId + '_desc', desc);
+            localStorage.setItem(productId + '_price', price);
+
+            // Handle image upload
+            const fileInput = document.getElementById('productImage');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(productId + '-img').innerHTML = `<img src="${e.target.result}">`;
+                    localStorage.setItem(productId + '_image', e.target.result);
+                    loadProduct(); // Refresh preview
+                }
+                reader.readAsDataURL(file);
+            }
+
+            alert('Product updated successfully!');
+        }
+
+        // Basic Settings
         function uploadLogo() {
             const fileInput = document.getElementById('logoUpload');
             const file = fileInput.files[0];
@@ -496,7 +659,7 @@
         }
 
         function saveSettings() {
-            alert('Settings saved successfully!');
+            alert('All settings saved successfully!');
             closeAdmin();
         }
 
@@ -514,6 +677,8 @@
                 document.getElementById('displayPhone').textContent = savedPhone;
                 document.getElementById('phoneNumber').value = savedPhone;
             }
+
+            loadAllProducts();
         });
 
         // Contact form handler
